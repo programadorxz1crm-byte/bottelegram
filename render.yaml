@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: bot-backend
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: "npm install"
+    startCommand: "node index.js"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+
+  - type: static
+    name: bot-frontend
+    plan: free
+    region: frankfurt
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    publishDir: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
