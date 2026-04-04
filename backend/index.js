@@ -9,6 +9,49 @@ app.use(require('cors')());
 app.use(express.json());
 app.use(express.json());
 
+const multer = require('multer');
+
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+fs.mkdir(UPLOADS_DIR, { recursive: true }); // Asegura que la carpeta uploads exista
+
+// Servir archivos estáticos desde la carpeta de uploads
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Endpoint para la subida de archivos
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No se subió ningún archivo.');
+  }
+  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+  res.status(200).json({ message: 'Archivo subido con éxito', filePath: fileUrl, fileName: req.file.filename });
+});
+
+// Endpoint para obtener la lista de archivos
+app.get('/api/files', async (req, res) => {
+  try {
+    const files = await fs.readdir(UPLOADS_DIR);
+    const fileDetails = files.map(file => ({
+      name: file,
+      url: `${req.protocol}://${req.get('host')}/uploads/${file}`
+    }));
+    res.status(200).json(fileDetails);
+  } catch (error) {
+    res.status(500).send('Error al leer los archivos.');
+  }
+});
+
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 let bot = null;
 
