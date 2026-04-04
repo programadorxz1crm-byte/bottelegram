@@ -7,6 +7,7 @@ const path = require('path');
 const app = express();
 app.use(require('cors')());
 app.use(express.json());
+app.use(express.json());
 
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 let bot = null;
@@ -123,6 +124,7 @@ Canal General (Comunicación directa conmigo y la comunidad):
 // --- Endpoints de la API ---
 
 app.post('/api/login', (req, res) => {
+  console.log('Intento de login recibido. Body:', req.body);
   const { username, password } = req.body;
   const adminUser = process.env.ADMIN_USER || 'admin';
   const adminPass = process.env.ADMIN_PASS || 'admin';
